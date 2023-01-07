@@ -23,11 +23,6 @@ class Solution
         	}
         }
         
-        while(range != 1) {
-        	range /= 2;
-        	answer++;
-        }
-        
-        return answer+1;
+        return Integer.toBinaryString(range).length();
     }
 }
