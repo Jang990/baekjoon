@@ -19,7 +19,6 @@ class Solution {
       		return 65536;
       	
       	for (String string : unionSet) {
-      		System.out.print(string + " ");
       		int num1 = s1.getOrDefault(string, s2.get(string));
       		int num2 = s2.getOrDefault(string, s1.get(string));
       		
@@ -28,8 +27,6 @@ class Solution {
       			intersection += Math.min(num1, num2);
       		}
 		}
-      	
-      	System.out.println(intersection + "," + union);
       	
         return (int)Math.floor((double)intersection/union * 65536);
     }
