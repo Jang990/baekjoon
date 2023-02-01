@@ -1,17 +1,12 @@
-SELECT MP.MEMBER_NAME, RR.REVIEW_TEXT, DATE_FORMAT(RR.REVIEW_DATE, '%Y-%m-%d') AS REVIEW_DATE 
-FROM MEMBER_PROFILE MP, REST_REVIEW RR 
-WHERE MP.MEMBER_ID = RR.MEMBER_ID AND MP.MEMBER_ID IN (
-    SELECT MP.MEMBER_ID 
-    FROM MEMBER_PROFILE MP, REST_REVIEW RR 
-    WHERE MP.MEMBER_ID = RR.MEMBER_ID 
-    GROUP BY MP.MEMBER_ID 
-    HAVING COUNT(*) = (
-        SELECT COUNT(*)
-        FROM MEMBER_PROFILE MP, REST_REVIEW RR 
-        WHERE MP.MEMBER_ID = RR.MEMBER_ID 
-        GROUP BY MP.MEMBER_ID 
-        ORDER BY COUNT(*) DESC
-        LIMIT 1
-    )
+select mp.member_name, rr.review_text, date_format(rr.review_date, '%Y-%m-%d')
+from member_profile mp
+left join rest_review rr
+on mp.member_id = rr.member_id
+where mp.member_id = (
+    select member_id
+    from rest_review
+    group by member_id
+    order by count(1) desc
+    limit 1
 )
-ORDER BY RR.REVIEW_DATE, RR.REVIEW_TEXT;
+order by 3, 2
