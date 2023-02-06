@@ -2,8 +2,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 class Solution {
     public String solution(String s, String skip, int index) {
-        String answer = "";
-        
+        StringBuilder sb = new StringBuilder();
         int[] sArr = s.chars().toArray();
         List<Integer> skipArr = skip.chars().boxed().sorted().collect(Collectors.toList());
         
@@ -21,9 +20,9 @@ class Solution {
 					cnt++;
 			}
 			
-			answer += (char)sArr[i];
+			sb.append((char)sArr[i]);
 		}
         
-        return answer;
+        return sb.toString();
     }
 }
