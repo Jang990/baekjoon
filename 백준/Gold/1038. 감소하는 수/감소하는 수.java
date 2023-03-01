@@ -20,12 +20,6 @@ public class Main {
 			System.out.println(n);
 			return;
 		}
-		if(n > 1022) {
-			System.out.println(-1);
-			return;
-		}
-		
-		
 		
 		list.add((long) 0);
 		for (int i = 1; i < 10; i++) {
@@ -33,7 +27,11 @@ public class Main {
 		}
 		
 		list = list.stream().sorted().collect(Collectors.toList());
-		System.out.println(list.get(n));
+		
+		if(list.size() <= n)
+			System.out.println(-1);
+		else
+			System.out.println(list.get(n));
 	}
 
 	private static void Rec(long num, int depth) {
