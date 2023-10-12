@@ -23,12 +23,7 @@ class Solution {
         for (int i = 0; i < seller.length; i++) {
             Info info = relation.get(seller[i]);
             int profit = price * amount[i], div;
-            if (info.referral == null) {
-                result[info.idx] += profit;
-                continue;
-            }
-
-
+            
             while (true) {
                 div = profit / 10;
                 result[info.idx] += (profit - div);
