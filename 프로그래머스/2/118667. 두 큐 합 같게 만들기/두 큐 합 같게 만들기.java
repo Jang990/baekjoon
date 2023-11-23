@@ -31,7 +31,7 @@ class Solution {
 			
 			cnt++;
 			
-			if(cnt > queue1.length * 3) return -1;
+			if(cnt >= queue1.length * 4) return -1;
 		}
 		
         return cnt;
