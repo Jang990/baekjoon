@@ -18,7 +18,7 @@ public class Main {
             Arrays.sort(arr, Comparator.comparing(CompStr::getContent));
             boolean no = false;
             for (int i = 1; i < arr.length; i++) {
-                if (!arr[i].getOriginalContent().startsWith(arr[i - 1].getOriginalContent()))
+                if (!arr[i].getContent().startsWith(arr[i - 1].getContent()))
                     continue;
                 no = true;
                 break;
@@ -39,20 +39,12 @@ public class Main {
         int len;
 
         public CompStr(String content) {
-            int oriLen = content.length();
-            if (oriLen < 10) {
-                content = content.concat(" ".repeat(10 - oriLen));
-            }
             this.content = content;
-            this.len = oriLen;
+            this.len = content.length();
         }
 
         public String getContent() {
             return content;
-        }
-
-        public String getOriginalContent() {
-            return content.substring(0, len);
         }
     }
 }
