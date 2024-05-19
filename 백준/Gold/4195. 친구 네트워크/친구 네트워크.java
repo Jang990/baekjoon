@@ -5,66 +5,70 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Main {
-    static Map<String, String> relation = new HashMap<>();
+    static Map<String, String> parent;
     static Map<String, Integer> size;
-    public static void main(String[] args) throws IOException {
-        StringBuilder sb = new StringBuilder();
-        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        int testcase = Integer.parseInt(br.readLine());
-        while (testcase-- > 0) {
-            relation = new HashMap<>();
-            size = new HashMap<>();
-            int F = Integer.parseInt(br.readLine());
+    static StringBuilder sb = new StringBuilder();
 
-            for (int i = 0; i < F; i++) {
-                String[] friend = br.readLine().split(" ");
-                init(friend[0]);
-                init(friend[1]);
-                sb.append(union(friend[0], friend[1])).append("\n");
+    public static void main(String[] args) throws IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        int caseCnt = Integer.parseInt(br.readLine());
+        while (caseCnt-- > 0) {
+            parent = new HashMap<>();
+            size = new HashMap<>();
+
+            int relationCnt = Integer.parseInt(br.readLine());
+            while (relationCnt-- > 0) {
+                String[] relation = br.readLine().split(" ");
+                if (parent.get(relation[0]) == null) {
+                    parent.put(relation[0], relation[0]);
+                    size.put(relation[0], 1);
+                }
+                if (parent.get(relation[1]) == null) {
+                    parent.put(relation[1], relation[1]);
+                    size.put(relation[1], 1);
+                }
+
+                int now = union(relation[0], relation[1]);
+                sb.append(now).append("\n");
             }
+
         }
         br.close();
-
         System.out.println(sb);
     }
 
-    private static void init(String friend) {
-        if (relation.get(friend) == null) {
-            relation.put(friend, friend);
+    static int union(String f1, String f2) {
+        String f1Parent = find(f1);
+        String f2Parent = find(f2);
+
+        if (f1Parent.equals(f2Parent)) {
+            return size.get(f1Parent);
         }
 
-        if (size.get(friend) == null) {
-            size.put(friend, 1);
+        int mergedSize = size.get(f1Parent) + size.get(f2Parent);
+        if (f1Parent.compareTo(f2Parent) > 0) {
+            // 38% 틀림 - 부모를 합쳐줘야 한다.
+            // parent.put(f1, f2Parent);
+            parent.put(f1Parent, f2Parent);
+            size.put(f2Parent, mergedSize);
+            size.remove(f1Parent);
+        } else {
+            parent.put(f2Parent, f1Parent);
+            size.put(f1Parent, mergedSize);
+            size.remove(f2Parent);
         }
+        return mergedSize;
     }
 
-    private static int union(String f1, String f2) {
-        String parentF1 = find(f1);
-        String parentF2 = find(f2);
+    static String find(String friend) {
+        if(parent.get(friend).equals(friend))
+            return friend;
 
-        if (parentF1.equals(parentF2)) {
-            return size.get(parentF1);
-        }
+        String nowParent = find(parent.get(friend));
+        parent.put(friend, nowParent);
+        return nowParent;
 
-        if (parentF1.compareTo(parentF2) < 0) {
-            relation.put(parentF2, parentF1);
-            size.put(parentF1, size.get(parentF1) + size.get(parentF2));
-            size.remove(parentF2);
-            return size.get(parentF1);
-        }
-
-        relation.put(parentF1, parentF2);
-        size.put(parentF2, size.get(parentF1) + size.get(parentF2));
-        size.remove(parentF1);
-        return size.get(parentF2);
-    }
-
-    private static String find(String name) {
-        if(relation.get(name).equals(name))
-            return name;
-
-        String parent = find(relation.get(name));
-        relation.put(name, parent);
-        return parent;
+        // 38% 틀림 - 이전 값을 반환해서 문제가 된다.
+//        return parent.put(friend, find(parent.get(friend)));
     }
 }
