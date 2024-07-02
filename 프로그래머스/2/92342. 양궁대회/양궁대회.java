@@ -1,82 +1,57 @@
 import java.util.*;
 class Solution {
-    static int[] lion;
-    static int[] apeach;
+    static int[] apeach, lion;
     static int[] result;
-    static int diff = Integer.MIN_VALUE;
+    static int max = Integer.MIN_VALUE;
+
     public static int[] solution(int n, int[] info) {
         apeach = info;
         lion = new int[11];
-        rec(-1, n);
-        if (diff <= 0) {
+        shoot(0, n, 0, 0);
+
+        if (max <= 0)
             return new int[] {-1};
-        }
         return result;
     }
 
-    private static void rec(int depth, int arrow) {
-        if ((depth != 10 && !isScoreable(depth + 1, arrow))) {
-            lion[10] = arrow;
-            rec(10, 0);
+    private static void shoot(int depth, int arrow, int lionScore, int apeachScore) {
+        if (depth == 11) {
+            if(arrow != 0)
+                lion[10] = arrow;
+            int diff = lionScore - apeachScore;
+            if ((max == diff && hasMoreLowScore()) || max < diff) {
+                max = diff;
+                result = Arrays.copyOf(lion, 11);
+            }
             lion[10] = 0;
             return;
         }
 
-        if (arrow == 0) {
-            calc();
-            return;
+        int nowScore = 10 - depth;
+        if (arrow > apeach[depth]) {
+            int requiredArrow = apeach[depth] + 1;
+            lion[depth] = requiredArrow;
+            shoot(depth + 1, arrow - requiredArrow, lionScore + nowScore, apeachScore);
+            lion[depth] = 0;
         }
 
-        for (int i = depth + 1; i < 10; i++) {
-            if(apeach[i] >= arrow)
-                continue;
-
-            lion[i] = apeach[i]+1;
-            rec(i, arrow - (apeach[i]+1));
-            lion[i] = 0;
-        }
-    }
-
-    private static boolean isScoreable(int now, int arrow) {
-        for (int i = now; i < 10; i++) {
-            if(apeach[i] < arrow)
-                return true;
-        }
-        return false;
-    }
-
-    private static void calc() {
-        int apeachScore = 0;
-        int lionScore = 0;
-        for (int i = 0; i < 10; i++) {
-            if(apeach[i] == 0 && lion[i] == 0)
-                continue;
-
-            if(apeach[i] < lion[i])
-                lionScore += (10 - i);
-            else
-                apeachScore += (10 - i);
-        }
-
-        int nowDiff = lionScore - apeachScore;
-        if (nowDiff > diff || (nowDiff == diff &&hasMoreLowScore(lion, result))) {
-            diff = nowDiff;
-            result = Arrays.copyOf(lion, 11);
-        }
+        if(apeach[depth] == 0)
+            shoot(depth + 1, arrow, lionScore, apeachScore);
+        else
+            shoot(depth + 1, arrow, lionScore, apeachScore + nowScore);
     }
     
-    private static boolean hasMoreLowScore(int[] lion, int[] result) {
+    private static boolean hasMoreLowScore() {
         if(result == null)
             return true;
-        
+        int lionArrowSum = 0, resultArrowSum = 0;
         for (int i = 10; i >= 0; i--) {
-            if(lion[i] == result[i])
-                continue;
-            if(lion[i] > result[i])
-                return true;
-            else
+            lionArrowSum += lion[i];
+            resultArrowSum += result[i];
+            if(lionArrowSum < resultArrowSum)
                 return false;
         }
-        return false;
+
+        return true;
     }
 }
