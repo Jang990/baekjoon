@@ -1,55 +1,48 @@
 class Solution {
-    public static int solution(int alp, int cop, int[][] problems) {
-        int maxAl = 0;
-        int maxCo = 0;
+    static int[][] dp;
+    static int maxAl = 0, maxCo = 0;
 
-        // 알re, 코re, 알, 코, 시간
-        for (int i = 0; i < problems.length; i++) {
-            maxAl = Math.max(problems[i][0], maxAl);
-            maxCo = Math.max(problems[i][1], maxCo);
+    // 알re, 코re, 알, 코, 시간
+    public static int solution(int alp, int cop, int[][] problems) {
+        int[] problemSelfAl = {0, 0, 1, 0, 1};
+        int[] problemSelfCo = {0, 0, 0, 1, 1};
+
+        for (int[] problem : problems) {
+            maxAl = Math.max(maxAl, problem[0]);
+            maxCo = Math.max(maxCo, problem[1]);
         }
 
-        int[][] dp = new int[maxAl+1][maxCo+1];
         if(alp > maxAl)
             alp = maxAl;
         if(cop > maxCo)
             cop = maxCo;
-            
-        
-        for(int i = alp; i <= maxAl; i++) {
+
+        dp = new int[maxAl + 1][maxCo + 1];
+        for (int i = alp; i <= maxAl; i++) {
             for (int j = cop; j <= maxCo; j++) {
-                setNextDpValue(dp, i, j,
-                        i+1, j, 1);
-                setNextDpValue(dp, i, j,
-                        i, j+1, 1);
-                for(int k = 0; k < problems.length; k++) {
-                    if(problems[k][0] > i || problems[k][1] > j)
-                        continue;
-
-                    int alReward = problems[k][2];
-                    int coReward = problems[k][3];
-
-                    setNextDpValue(dp, i, j,
-                            i+alReward, j+coReward, problems[k][4]);
+                next(i, j, problemSelfAl);
+                if(dp[5][1] == 1)
+                    System.out.println(i + "," + j);
+                next(i, j, problemSelfCo);
+                for (int[] problem : problems) {
+                    next(i, j, problem);
                 }
             }
         }
-
         return dp[maxAl][maxCo];
     }
 
-    private static void setNextDpValue(int[][] dp, int nowAl, int nowCo, int nextAl, int nextCo, int time) {
-        if(nextAl >= dp.length)
-            nextAl = dp.length - 1;
-        if(nextCo >= dp[0].length)
-            nextCo = dp[0].length - 1;
-        
-        if(nowAl == nextAl && nowCo == nextCo)
+    // 알re, 코re, 알, 코, 시간
+    private static void next(int al, int co, int[] problem) {
+        if(problem[0] > al || problem[1] > co)
             return;
-
-        if (dp[nextAl][nextCo] == 0)
-            dp[nextAl][nextCo] = dp[nowAl][nowCo] + time;
-        else 
-            dp[nextAl][nextCo] = Math.min(dp[nextAl][nextCo], dp[nowAl][nowCo]+time);
+        int nextAl = Math.min(maxAl, al + problem[2]);
+        int nextCo = Math.min(maxCo, co + problem[3]);
+        int nextTime = dp[al][co] + problem[4];
+        if(al == nextAl && co == nextCo)
+            return;
+        if(dp[nextAl][nextCo] != 0 && dp[nextAl][nextCo] <= nextTime)
+            return;
+        dp[nextAl][nextCo] = nextTime;
     }
 }
