@@ -11,19 +11,14 @@ class Solution {
         List<Book> list = new LinkedList<>();
         while (!pq.isEmpty()) {
             Book now = pq.poll();
-            int index, selectedIdx = -1, minDiff = Integer.MAX_VALUE;
+            int index;
             for (index = 0; index < list.size(); index++) {
-                if (list.get(index).isOk(now) && list.get(index).diff(now) < minDiff) {
-                    selectedIdx = index;
-                    minDiff = list.get(index).diff(now);
-                }
+                if (list.get(index).isOk(now)) break;
             }
-            if (selectedIdx == -1) {
-                list.add(now);
-                continue;
-            }
-            list.remove(selectedIdx);
-            list.add(selectedIdx, now);
+            if(index != list.size())
+                list.remove(index);
+            list.add(index, now);
+            list.sort(Comparator.comparing(Book::getEnd));
         }
 
         return list.size();
@@ -48,11 +43,6 @@ class Solution {
 
         public boolean isOk(Book target) {
             return end.isEqual(target.start) || end.isBefore(target.start);
-        }
-
-        public int diff(Book target) {
-            LocalDateTime diffTime = target.start.minusHours(end.getHour()).minusMinutes(end.getMinute());
-            return diffTime.getHour() * 60 + diffTime.getMinute();
         }
     }
 }
