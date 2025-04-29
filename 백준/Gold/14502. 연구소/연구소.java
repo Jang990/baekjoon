@@ -1,89 +1,107 @@
 import java.awt.*;
-import java.io.*;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.Queue;
+import java.util.Stack;
 
 public class Main {
-    static int N, M;
-    static int[][] map;
+    static int[][] graph;
     static int max = Integer.MIN_VALUE;
     public static void main(String[] args) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        String[] line = br.readLine().split(" ");
-        N = Integer.parseInt(line[0]);
-        M = Integer.parseInt(line[1]);
+        int[] cond = input(br);
+        graph = new int[cond[0]][cond[1]];
 
-        map = new int[N][M];
-        for (int i = 0; i < N; i++) {
-            map[i] = Arrays.stream(br.readLine().split(" "))
-                    .mapToInt(Integer::valueOf).toArray();
-        }
+        for (int i = 0; i < graph.length; i++)
+            graph[i] = input(br);
         br.close();
 
-        createWall(0);
+        rec(0, new Stack<>());
         System.out.println(max);
     }
 
-    private static void createWall(int wallCnt) {
-        if (wallCnt == 3) {
-            int safeZoneCnt = checkSafeZone();
-            max = Math.max(safeZoneCnt, max);
+    private static void rec(int depth, Stack<Point> selected) {
+        if (depth == 3) {
+            max = Math.max(max, checkArea(selected));
             return;
         }
 
-        for (int i = 0; i < N; i++) {
-            for (int j = 0; j < M; j++) {
-                if (map[i][j] == 0) {
-                    map[i][j] = 1;
-                    createWall(wallCnt+1);
-                    map[i][j] = 0;
-                }
-            }
+        int start = 0;
+        if (!selected.isEmpty()) {
+            start = selected.peek().y * graph[0].length + selected.peek().x + 1;
+        }
+
+        for (int i = start; i < graph.length * graph[0].length; i++) {
+            int x = i % graph[0].length;
+            int y = i / graph[0].length;
+            if(graph[y][x] != 0)
+                continue;
+            selected.push(new Point(x, y));
+            rec(depth + 1, selected);
+            selected.pop();
         }
     }
 
-    private static int checkSafeZone() {
+    private static int checkArea(Stack<Point> selected) {
+        checkToGraph(selected, 1);
         Queue<Point> qu = new LinkedList<>();
-        int[][] cloneMap = new int[N][M];
-
-        for (int i = 0; i < N; i++) {
-            for (int j = 0; j < M; j++) {
-                cloneMap[i][j] = map[i][j];
-                if (cloneMap[i][j] == 2) {
-                    qu.add(new Point(j, i));
-                }
-            }
-        }
-
-        int[] dirX = {0,0,1,-1};
-        int[] dirY = {1,-1,0,0};
-        while (!qu.isEmpty()) {
-            Point now = qu.poll();
-            for (int i = 0; i < 4; i++) {
-                int nowX = now.x + dirX[i];
-                int nowY = now.y + dirY[i];
-
-                if (isOutOfBoundary(nowX, nowY) || cloneMap[nowY][nowX] != 0) {
+        boolean[][] visited = new boolean[graph.length][graph[0].length];
+        for (int i = 0; i < graph.length; i++) {
+            for (int j = 0; j < graph[0].length; j++) {
+                if(graph[i][j] != 2)
                     continue;
-                }
-
-                cloneMap[nowY][nowX] = 2;
-                qu.offer(new Point(nowX, nowY));
+                qu.offer(new Point(j, i));
+                visited[i][j] = true;
             }
         }
 
-        int safeZoneCnt = 0;
-        for (int i = 0; i < N; i++) {
-            for (int j = 0; j < M; j++) {
-                if (cloneMap[i][j] == 0) {
-                    safeZoneCnt++;
-                }
+        int[] dirX = {0, 0, 1, -1};
+        int[] dirY = {1, -1, 0, 0};
+        int nextX, nextY;
+        while (!qu.isEmpty()) {
+            Point current = qu.poll();
+            for (int i = 0; i < 4; i++) {
+                nextX = current.x + dirX[i];
+                nextY = current.y + dirY[i];
+
+                if(outOfBound(nextX, nextY)
+                        || visited[nextY][nextX]
+                        || graph[nextY][nextX] != 0)
+                    continue;
+
+                qu.offer(new Point(nextX, nextY));
+                visited[nextY][nextX] = true;
             }
         }
 
-        return safeZoneCnt;
+        int result = 0;
+        for (int i = 0; i < graph.length; i++) {
+            for (int j = 0; j < graph[0].length; j++) {
+                if(graph[i][j] == 0 && !visited[i][j])
+                    result++;
+            }
+        }
+
+        checkToGraph(selected, 0);
+        return result;
     }
 
-    private static boolean isOutOfBoundary(int nowX, int nowY) {
-        return 0 > nowX || nowX >= M || 0 > nowY || nowY >= N;
+    private static boolean outOfBound(int x, int y) {
+        return x < 0 || graph[0].length <= x || y < 0 || graph.length <= y;
+    }
+
+    private static void checkToGraph(Stack<Point> stack, int num) {
+        for (Point point : stack)
+            graph[point.y][point.x] = num;
+    }
+
+    private static int[] input(BufferedReader br) throws IOException {
+        int[] input = Arrays.stream(br.readLine().split(" "))
+                .mapToInt(Integer::parseInt)
+                .toArray();
+        return input;
     }
 }
