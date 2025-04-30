@@ -2,88 +2,75 @@ import java.awt.*;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Arrays;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 
 public class Main {
-    static boolean[][] visited;
-    static String[][] map;
+    static String[][] graph;
     public static void main(String[] args) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        int n = Integer.parseInt(br.readLine());
-        map = new String[n][n];
-        visited = new boolean[n][n];
-        for (int i = 0; i < n; i++) {
-            map[i] = Arrays.stream(br.readLine().split("")).toArray(String[]::new);
+        int N = Integer.parseInt(br.readLine());
+        graph = new String[N][N];
+        for (int i = 0; i < N; i++) {
+            graph[i] = br.readLine().split("");
         }
         br.close();
 
-        int normalCnt = 0;
-        for (int i = 0; i < n; i++) {
-            for (int j = 0; j < n; j++) {
-                if(visited[i][j]) {
+        boolean[][] visited = new boolean[N][N];
+        int normal = 0;
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++) {
+                if(visited[i][j])
                     continue;
-                }
-                bfs(new Point(j,i), map[i][j]);
-                normalCnt++;
+                visitArea(new Point(j, i), visited, List.of(graph[i][j]));
+                normal++;
             }
         }
 
-        int rgCnt = 0;
-        visited = new boolean[n][n];
-        for (int i = 0; i < n; i++) {
-            for (int j = 0; j < n; j++) {
-                if(visited[i][j]) {
+        int impaired = 0;
+        visited = new boolean[N][N];
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++) {
+                if(visited[i][j])
                     continue;
-                }
-                Point now = new Point(j, i);
-                if(map[i][j].equals("R") || map[i][j].equals("G")) {
-                    bfs(now, "R", "G");
-                }
-                else {
-                    bfs(now, "B");
-                }
-                rgCnt++;
+                List<String> color;
+                if(graph[i][j].equals("R") || graph[i][j].equals("G"))
+                    color = List.of("R", "G");
+                else
+                    color = List.of("B");
+                visitArea(new Point(j, i), visited, color);
+                impaired++;
             }
         }
 
-        System.out.println(normalCnt + " " + rgCnt);
+        System.out.println(normal + " " + impaired);
     }
 
-
-    static int dirX[] = {0,0,1,-1};
-    static int dirY[] = {1,-1,0,0};
-
-    private static void bfs(Point start, String... colors) {
+    private static void visitArea(Point point, boolean[][] visited, List<String> color) {
         Queue<Point> qu = new LinkedList<>();
-        qu.offer(start);
-        visited[start.y][start.x] = true;
+        qu.offer(point);
+        visited[point.y][point.x] = true;
 
+        int[] dirX = {0, 0, 1, -1};
+        int[] dirY = {1, -1, 0, 0};
         while (!qu.isEmpty()) {
-            Point now = qu.poll();
-            int nextX, nextY;
+            Point current = qu.poll();
             for (int i = 0; i < 4; i++) {
-                nextX = now.x + dirX[i];
-                nextY = now.y + dirY[i];
-
-                if(outOfBoundary(nextX, nextY) || visited[nextY][nextX]) {
+                int nextX = current.x + dirX[i];
+                int nextY = current.y + dirY[i];
+                if(outOfBound(nextX, nextY)
+                        || visited[nextY][nextX]
+                        || !color.contains(graph[nextY][nextX]))
                     continue;
-                }
 
-                for (String color : colors) {
-                    if (map[nextY][nextX].equals(color)) {
-                        qu.offer(new Point(nextX, nextY));
-                        visited[nextY][nextX] = true;
-                        break;
-                    }
-                }
-
+                qu.offer(new Point(nextX, nextY));
+                visited[nextY][nextX] = true;
             }
         }
     }
 
-    private static boolean outOfBoundary(int nextX, int nextY) {
-        return 0 > nextX || nextX >= map[0].length || 0 > nextY || nextY >= map.length;
+    private static boolean outOfBound(int x, int y) {
+        return x < 0 || graph.length <= x || y < 0 || graph.length <= y;
     }
 }
