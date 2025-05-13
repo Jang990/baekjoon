@@ -2,88 +2,88 @@ import java.awt.*;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Stack;
 
 public class Main {
-    static List<Point> house, chicken;
+    static int[][] graph;
+    static int maxChicken;
+    static int[][] chickenLen;
     static int min = Integer.MAX_VALUE;
-    static int N, M;
-    static boolean[] check;
+
     public static void main(String[] args) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        String[] line = br.readLine().split(" ");
-        N = Integer.parseInt(line[0]);
-        M = Integer.parseInt(line[1]);
+        int[] input = readLine(br);
+        int N = input[0];
+        maxChicken = input[1];
+        graph = new int[N][N];
+        for (int i = 0; i < N; i++)
+            graph[i] = readLine(br);
 
-        int[][] map =  new int[N][N];
-        for (int i = 0; i < N; i++) {
-            map[i] = Arrays.stream(br.readLine().split(" ")).mapToInt(Integer::parseInt).toArray();
-        }
         br.close();
 
-        house = new ArrayList<>();
-        chicken = new ArrayList<>();
+        List<Point> customer = find(1);
+        List<Point> chicken = find(2);
+        chickenLen = calculateChickenLen(customer, chicken);
 
-        // 치킨집 좌표 뽑기 - 일반집 좌표 뽑기
-        for (int i = 0; i < N; i++) {
-            for (int j = 0; j < N; j++) {
-                if (map[i][j] == 1) {
-                    house.add(new Point(j, i));
-                }
-                else if (map[i][j] == 2) {
-                    chicken.add(new Point(j, i));
-                }
-            }
-        }
-
-        check = new boolean[chicken.size()];
-
-        // 경우의 수 뽑기
-        back(0, 0);
+        selectRec(0, -1, chicken.size(), new Stack<>());
         System.out.println(min);
     }
 
-    private static void back(int depth, int beforeIdx) {
-        if (depth == M) {
-            calcCityChickenDistance();
+    private static void selectRec(int depth, int beforeSelected, int chickenCnt, Stack<Integer> selected) {
+        if (depth == maxChicken) {
+            min = Math.min(calcMin(selected), min);
             return;
         }
 
-        for (int i = beforeIdx; i < chicken.size(); i++) {
-            if(check[i])
-                continue;
-
-            check[i] = true;
-            back(depth+1, i);
-            check[i] = false;
+        for (int i = beforeSelected + 1; i < chickenCnt; i++) {
+            selected.push(i);
+            selectRec(depth + 1,i, chickenCnt, selected);
+            selected.pop();
         }
     }
 
-    private static void calcCityChickenDistance() {
-        // 경우의 수에 대한 최단 거리 뽑기
-        List<Point> selectedChicken = getSelectedChicken();
-        int sum = 0;
-        for (Point houseLoc : house) {
-            int distanceMin = Integer.MAX_VALUE;
-            for (Point chickenLoc : selectedChicken) {
-                int distance = Math.abs(chickenLoc.x - houseLoc.x) + Math.abs(chickenLoc.y - houseLoc.y);
-                distanceMin = Math.min(distanceMin, distance);
+    private static int calcMin(List<Integer> selected) {
+        int result = 0;
+        for (int i = 0; i < chickenLen[0].length; i++) {
+            int currentMin = Integer.MAX_VALUE;
+            for (Integer chicken : selected) {
+                currentMin = Math.min(chickenLen[chicken][i], currentMin);
             }
-            sum += distanceMin;
+            result += currentMin;
         }
-
-        min = Math.min(sum, min);
+        return result;
     }
 
-    private static List<Point> getSelectedChicken() {
-        List<Point> selected = new ArrayList<>();
-        for (int i = 0; i < check.length; i++) {
-            if(!check[i])
-                continue;
-            selected.add(chicken.get(i));
+    private static int[][] calculateChickenLen(List<Point> customer, List<Point> chicken) {
+        int[][] chickenLen = new int[chicken.size()][customer.size()];
+        for (int i = 0; i < chicken.size(); i++) {
+            for (int j = 0; j < customer.size(); j++) {
+                Point chickenLoc = chicken.get(i);
+                Point customerLoc = customer.get(j);
+
+                chickenLen[i][j] = Math.abs(chickenLoc.x - customerLoc.x)
+                        + Math.abs(chickenLoc.y - customerLoc.y);
+            }
         }
-        return selected;
+
+        return chickenLen;
+    }
+
+    private static List<Point> find(int target) {
+        List<Point> result = new LinkedList<>();
+        for (int i = 0; i < graph.length; i++) {
+            for (int j = 0; j < graph.length; j++) {
+                if(graph[i][j] != target) continue;
+                result.add(new Point(j, i));
+            }
+        }
+        return result;
+    }
+
+    private static int[] readLine(BufferedReader br) throws IOException {
+        return Arrays.stream(br.readLine().split(" ")).mapToInt(Integer::parseInt).toArray();
     }
 }
