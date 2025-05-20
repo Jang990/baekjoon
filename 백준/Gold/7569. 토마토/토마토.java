@@ -7,138 +7,108 @@ import java.util.Queue;
 import java.util.StringTokenizer;
 
 public class Main {
-    static int M, N, H;
-    static int[][][] farm;
-    static boolean[][][] visited;
+    static int[][][] graph;
     public static void main(String[] args) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        StringTokenizer st = new StringTokenizer(br.readLine());
-        M = Integer.parseInt(st.nextToken());
-        N = Integer.parseInt(st.nextToken());
-        H = Integer.parseInt(st.nextToken());
-        getFarm(br);
+        int[] cond = readLine(br);
+        graph = new int[cond[2]][cond[1]][cond[0]];
+        for (int i = 0; i < graph.length; i++) {
+            for (int j = 0; j < graph[0].length; j++) {
+                graph[i][j] = readLine(br);
+            }
+        }
         br.close();
 
-        if (checkTomato()) {
-            System.out.println(0);
-            return;
-        }
-
-        int day = bfs();
-
-        if(checkTomato()) {
-            System.out.println(day);
-        }
-        else {
-            System.out.println(-1);
-        }
-
+        System.out.println(process());
     }
 
-    private static boolean checkTomato() {
-        for (int i = 0; i < H; i++) {
-            for (int j = 0; j < N; j++) {
-                for (int k = 0; k < M; k++) {
-                    if (farm[i][j][k] == 0) {
-                        return false;
-                    }
-                }
-            }
-        }
+    private static int process() {
+        Queue<Point> qu = findTomato();
 
-        return true;
-    }
+        int[] dirX = {0, 0, 0, 0, 1, -1};
+        int[] dirY = {0, 0, 1, -1, 0, 0};
+        int[] dirZ = {1, -1, 0, 0, 0, 0};
 
-    static int[] dirX = {1,-1,0,0,0,0};
-    static int[] dirY = {0,0,1,-1,0,0};
-    static int[] dirZ = {0,0,0,0,1,-1};
-    static int directionMax = 6;
-
-    private static int bfs() {
-        Queue<Tomato> qu = initQueue();
-
-        int maxDay = 0;
+        int max = Integer.MIN_VALUE;
         while (!qu.isEmpty()) {
-            Tomato nowTomato = qu.poll();
+            Point current = qu.poll();
+            for (int i = 0; i < 6; i++) {
+                int nextX = current.x + dirX[i];
+                int nextY = current.y + dirY[i];
+                int nextZ = current.z + dirZ[i];
 
-            int ripeX, ripeY, ripeZ;
-            for (int i = 0; i < directionMax; i++) {
-                ripeX = nowTomato.x + dirX[i];
-                ripeY = nowTomato.y + dirY[i];
-                ripeZ = nowTomato.z + dirZ[i];
-
-
-                if(isOutOfBound(ripeX, ripeY, ripeZ) || visited[ripeZ][ripeY][ripeX]) {
+                if(outOfBound(nextX,nextY,nextZ)
+                        || graph[nextZ][nextY][nextX] == -1)
                     continue;
-                }
 
-                int nowTomatoRideDay = farm[nowTomato.z][nowTomato.y][nowTomato.x];
-                int nextTomatoRideDay = farm[ripeZ][ripeY][ripeX];
-
-                if (nextTomatoRideDay == -1) {
+                if(graph[nextZ][nextY][nextX] != 0
+                        && graph[nextZ][nextY][nextX] <= graph[current.z][current.y][current.x] + 1)
                     continue;
-                }
-                if (nextTomatoRideDay != 0 && nextTomatoRideDay <= nowTomatoRideDay) {
-                    continue;
-                }
 
-
-                int nextDay = nowTomatoRideDay + 1;
-                farm[ripeZ][ripeY][ripeX] = nextDay;
-                visited[ripeZ][ripeY][ripeX] = true;
-                maxDay = Math.max(maxDay, nextDay);
-                qu.offer(new Tomato(ripeX, ripeY, ripeZ));
+                qu.offer(new Point(nextX, nextY, nextZ));
+                graph[nextZ][nextY][nextX] = graph[current.z][current.y][current.x] + 1;
+                max = Math.max(max, graph[nextZ][nextY][nextX]);
             }
         }
 
+        if(isInvalid())
+            return -1;
 
-        return maxDay - 1;
+        if(max == Integer.MIN_VALUE)
+            return 0;
+        else
+            return max - 1;
     }
 
-    private static boolean isOutOfBound(int x, int y, int z) {
-        return 0 > x || x >= M ||
-                0 > y || y >= N ||
-                0 > z || z >= H;
+    private static boolean isInvalid() {
+        for (int z = 0; z < graph.length; z++) {
+            for (int y = 0; y < graph[0].length; y++) {
+                for (int x = 0; x < graph[0][0].length; x++) {
+                    if(graph[z][y][x] == 0)
+                        return true;
+                }
+            }
+        }
+        return false;
     }
 
-    private static Queue<Tomato> initQueue() {
-        Queue<Tomato> qu = new LinkedList<>();
+    private static boolean outOfBound(int x, int y, int z) {
+        return x < 0 || graph[0][0].length <= x
+                || y < 0 || graph[0].length <= y
+                || z < 0 || graph.length <= z;
+    }
 
-        for (int z = 0; z < H; z++) {
-            for (int y = 0; y < N; y++) {
-                for (int x = 0; x < M; x++) {
-                    if (farm[z][y][x] == 1) {
-                        qu.offer(new Tomato(x,y,z));
-                        visited[z][y][x] = true;
-                    }
+    private static Queue<Point> findTomato() {
+        Queue<Point> result = new LinkedList<>();
+        for (int z = 0; z < graph.length; z++) {
+            for (int y = 0; y < graph[0].length; y++) {
+                for (int x = 0; x < graph[0][0].length; x++) {
+                    if(graph[z][y][x] == 1)
+                        result.add(new Point(x, y, z));
                 }
             }
         }
 
-        return qu;
+        return result;
     }
 
-    static class Tomato {
+    private static int[] readLine(BufferedReader br) throws IOException {
+        StringTokenizer st = new StringTokenizer(br.readLine());
+        int size = st.countTokens();
+        int[] result = new int[size];
+        for (int i = 0; i < size; i++) {
+            result[i] = Integer.parseInt(st.nextToken());
+        }
+        return result;
+    }
+
+    static class Point {
         int x, y, z;
 
-        public Tomato(int x, int y, int z) {
+        public Point(int x, int y, int z) {
             this.x = x;
             this.y = y;
             this.z = z;
         }
-    }
-
-    private static int[][][] getFarm(BufferedReader br) throws IOException {
-        farm = new int[H][N][M];
-        visited = new boolean[H][N][M];
-
-        for (int i = 0; i < H; i++) {
-            for (int j = 0; j < N; j++) {
-                farm[i][j] = Arrays.stream(br.readLine().split(" "))
-                        .mapToInt(Integer::parseInt).toArray();
-            }
-        }
-
-        return farm;
     }
 }
