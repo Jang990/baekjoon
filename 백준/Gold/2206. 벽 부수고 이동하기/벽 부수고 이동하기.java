@@ -4,92 +4,89 @@ import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Queue;
-import java.util.StringTokenizer;
 
 public class Main {
     static int[][] graph;
-    static int[][][] visited;
-    private static int N;
-    private static int M;
-
     public static void main(String[] args) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        StringTokenizer st = new StringTokenizer(br.readLine());
-        N = Integer.valueOf(st.nextToken());
-        M = Integer.valueOf(st.nextToken());
-        graph = new int[N][M];
-        visited = new int[2][N][M];
-        for (int i = 0; i < N; i++) {
-            graph[i] = Arrays.stream(br.readLine().split("")).mapToInt(Integer::valueOf).toArray();
-            Arrays.fill(visited[0][i], Integer.MAX_VALUE);
-            Arrays.fill(visited[1][i], Integer.MAX_VALUE);
+        int[] cond = Arrays.stream(br.readLine().split(" "))
+                .mapToInt(Integer::parseInt)
+                .toArray();
+        graph = new int[cond[0]][cond[1]];
+        for (int i = 0; i < graph.length; i++) {
+            graph[i] = Arrays.stream(br.readLine().split(""))
+                    .mapToInt(Integer::parseInt)
+                    .toArray();
         }
+
         br.close();
 
-        bfs();
-
-        int result = Math.min(visited[0][N-1][M-1], visited[1][N-1][M-1]);
-        if (result == Integer.MAX_VALUE) {
-            System.out.println(-1);
-        }
-        else {
-            System.out.println(result);
-        }
-
+        System.out.println(search());
     }
 
-    private static void bfs() {
-        Queue<Point> qu = new LinkedList<>();
-        qu.offer(new Point(0, 0, false));
-        visited[0][0][0] = 1;
+    private static int search() {
+        Queue<Info> qu = new LinkedList<>();
+        qu.offer(new Info(0, 0, 0));
 
+        int[][][] visited = new int[2][graph.length][graph[0].length];
+        visited[0][0][0] = 1;
+        visited[1][0][0] = 1;
         int[] dirX = {0, 0, -1, 1};
         int[] dirY = {-1, 1, 0, 0};
         while (!qu.isEmpty()) {
-            Point now = qu.poll();
-            int nextX, nextY;
+            Info current = qu.poll();
             for (int i = 0; i < 4; i++) {
-                nextX = now.x + dirX[i];
-                nextY = now.y + dirY[i];
+                int nextX = current.x + dirX[i];
+                int nextY = current.y + dirY[i];
 
-                if (outOfBound(nextX, nextY)) {
+                if(outOfBound(nextX, nextY))
                     continue;
-                }
+
+                int nextStep = visited[current.crashed][current.y][current.x] + 1;
+                if(visited[current.crashed][nextY][nextX] != 0
+                        && visited[current.crashed][nextY][nextX] <= nextStep)
+                    continue;
+
+                if (graph[nextY][nextX] == 1 && current.crashed > 0)
+                    continue;
 
                 if (graph[nextY][nextX] == 1) {
-                    if (now.isDestroyed) {
-                        continue;
-                    }
-                    visited[1][nextY][nextX] = visited[0][now.y][now.x] + 1;
-                    qu.offer(new Point(nextX, nextY, true));
-                    continue;
+                    qu.offer(new Info(nextX, nextY, current.crashed + 1));
+                    visited[current.crashed + 1][nextY][nextX] = nextStep;
+                } else {
+                    qu.offer(new Info(nextX, nextY, current.crashed));
+                    visited[current.crashed][nextY][nextX] = nextStep;
                 }
-
-                int idx = now.isDestroyed ? 1 : 0;
-
-                if(visited[idx][nextY][nextX] <= visited[idx][now.y][now.x] + 1) {
-                    continue;
-                }
-
-                visited[idx][nextY][nextX] = visited[idx][now.y][now.x] + 1;
-                qu.offer(new Point(nextX, nextY, now.isDestroyed));
             }
         }
+
+        boolean visit1 = visited[0][graph.length - 1][graph[0].length - 1] != 0;
+        boolean visit2 = visited[1][graph.length - 1][graph[0].length - 1] != 0;
+        if(!visit1 && !visit2)
+            return -1;
+
+        if(visit1 && !visit2)
+            return visited[0][graph.length - 1][graph[0].length - 1];
+        else if(!visit1 && visit2)
+            return visited[1][graph.length - 1][graph[0].length - 1];
+        else
+            return Math.min(
+                    visited[0][graph.length - 1][graph[0].length - 1],
+                    visited[1][graph.length - 1][graph[0].length - 1]
+            );
     }
 
-    private static boolean outOfBound(int nextX, int nextY) {
-        return 0 > nextX || nextX >= M || 0 > nextY || nextY >= N;
+    private static boolean outOfBound(int x, int y) {
+        return x < 0 || graph[0].length <= x || y < 0 || graph.length <= y;
     }
 
-    static class Point {
-        int x,y;
-        boolean isDestroyed;
+    static class Info {
+        int x, y, crashed;
 
-        public Point(int x, int y, boolean isDestroyed) {
+        public Info(int x, int y, int crashed) {
             this.x = x;
             this.y = y;
-            this.isDestroyed = isDestroyed;
+            this.crashed = crashed;
         }
     }
-
 }
