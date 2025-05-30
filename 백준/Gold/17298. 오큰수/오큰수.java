@@ -9,33 +9,38 @@ public class Main {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         int n = Integer.parseInt(br.readLine());
         int[] arr = Arrays.stream(br.readLine().split(" "))
-                .mapToInt(Integer::valueOf).toArray();
-        int[] result = new int[n];
+                .mapToInt(Integer::parseInt)
+                .toArray();
         br.close();
 
-        Stack<Integer> idxStack = new Stack<>();
-        for(int i = 0; i < n; i++) {
-            while (!idxStack.isEmpty()) {
-                int nowNum = arr[i];
-                if (arr[idxStack.peek()] < nowNum) {
-                    int idx = idxStack.pop();
-                    result[idx] = nowNum;
-                } else {
-                    break;
-                }
+        int[] result = new int[n];
+        Stack<Element> st = new Stack<>();
+        for (int i = 0; i < n; i++) {
+            while (!st.isEmpty() && st.peek().val < arr[i]) {
+                Element element = st.pop();
+                result[element.idx] = arr[i];
             }
-            idxStack.push(i);
+            st.push(new Element(arr[i], i));
         }
 
-        while (!idxStack.isEmpty()) {
-            int idx = idxStack.pop();
-            result[idx] = -1;
+        while (!st.isEmpty()) {
+            Element element = st.pop();
+            result[element.idx] = -1;
         }
 
         StringBuilder sb = new StringBuilder();
-        for (int i : result) {
-            sb.append(i).append(" ");
+        for (int i = 0; i < n; i++) {
+            sb.append(result[i]).append(" ");
         }
         System.out.println(sb);
+    }
+
+    static class Element {
+        int val, idx;
+
+        public Element(int val, int idx) {
+            this.val = val;
+            this.idx = idx;
+        }
     }
 }
