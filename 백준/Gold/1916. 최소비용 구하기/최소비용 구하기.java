@@ -1,76 +1,72 @@
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.PriorityQueue;
+import java.io.*;
+import java.util.*;
 
 public class Main {
-    static List<Edge>[] edges;
+    static List<Edge>[] cities;
     static int[] min;
+    private static int cityCnt, busCnt;
+
     public static void main(String[] args) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        int n = Integer.parseInt(br.readLine());
-        int m = Integer.parseInt(br.readLine());
-        edges = new List[n + 1];
-        min = new int[n + 1];
-        for (int i = 0; i < edges.length; i++) {
-            edges[i] = new ArrayList<>();
-        }
-        Arrays.fill(min, Integer.MAX_VALUE);
+        cityCnt = Integer.parseInt(br.readLine());
+        busCnt = Integer.parseInt(br.readLine());
 
-        for (int i = 0; i < m; i++) {
-            String[] line = br.readLine().split(" ");
-            int start = Integer.parseInt(line[0]);
-            int end = Integer.parseInt(line[1]);
-            int weight = Integer.parseInt(line[2]);
-            edges[start].add(new Edge(end, weight));
+        cities = new List[cityCnt + 1];
+        for (int i = 1; i <= cityCnt; i++) {
+            cities[i] = new LinkedList<>();
         }
 
-        String[] line = br.readLine().split(" ");
-        int start = Integer.parseInt(line[0]);
-        int end = Integer.parseInt(line[1]);
+        StringTokenizer st;
+        for (int i = 0; i < busCnt; i++) {
+            st = new StringTokenizer(br.readLine());
+            int start = Integer.parseInt(st.nextToken());
+            int end = Integer.parseInt(st.nextToken());
+            int weight = Integer.parseInt(st.nextToken());
 
+            cities[start].add(new Edge(end, weight));
+        }
+
+        st = new StringTokenizer(br.readLine());
         br.close();
 
-        dj(start);
+        min = new int[cityCnt + 1];
+        Arrays.fill(min, Integer.MAX_VALUE);
+        int start = Integer.parseInt(st.nextToken());
+        int end = Integer.parseInt(st.nextToken());
+        search(start);
         System.out.println(min[end]);
     }
 
-    private static void dj(int start) {
-        min[start] = 0;
-        boolean[] visited = new boolean[min.length];
-        PriorityQueue<Edge> pq = new PriorityQueue<Edge>((n1, n2) -> {
-            if(n1.weight > n2.weight)
-                return 1;
-            else
-                return -1;
-        });
+    private static void search(int start) {
+        PriorityQueue<Edge> pq = new PriorityQueue<>(Comparator.comparingInt(Edge::getW));
+        boolean[] visited = new boolean[cityCnt + 1];
         pq.offer(new Edge(start, 0));
 
         while (!pq.isEmpty()) {
             Edge now = pq.poll();
-            if(visited[now.end])
-                continue;
-            visited[now.end] = true;
-            for (Edge edge : edges[now.end]) {
-                int nextWeight = edge.weight + min[now.end];
-                if(min[edge.end] <= nextWeight)
+            if(visited[now.v]) continue;
+            visited[now.v] = true;
+
+            for (Edge next : cities[now.v]) {
+                int nextCost = now.w + next.w;
+                if(min[next.v] <= nextCost)
                     continue;
-                min[edge.end] = nextWeight;
-                pq.offer(new Edge(edge.end, nextWeight));
+                min[next.v] = nextCost;
+                pq.offer(new Edge(next.v, nextCost));
             }
         }
     }
 
     static class Edge {
-        int end;
-        int weight;
+        int v, w;
 
-        public Edge(int end, int weight) {
-            this.end = end;
-            this.weight = weight;
+        public Edge(int v, int w) {
+            this.v = v;
+            this.w = w;
+        }
+
+        public int getW() {
+            return w;
         }
     }
 }
