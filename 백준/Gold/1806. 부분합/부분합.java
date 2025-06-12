@@ -28,9 +28,6 @@ public class Main {
             }
         }
 
-        if(sum >= m)
-            min = Math.min(min, end - start);
-
         if(min == Integer.MAX_VALUE)
             min = 0;
 
