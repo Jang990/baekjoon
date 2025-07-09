@@ -2,138 +2,125 @@ import java.awt.*;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.*;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
 
 public class Main {
     static int[][] graph;
-    static int[][] adjacentWater;
-    static int[] dirX = {0, 0, 1, -1},
-            dirY = {1, -1, 0, 0};
-    static Set<Point> ice = new HashSet<>();
-    static Set<RemovedInfo> removedIce = new HashSet<>();
-
+    static int[][] meltCnt;
+    static List<Point> iceLoc = new LinkedList<>();
+    static int[] dirX = {0, 0, -1, 1};
+    static int[] dirY = {-1, 1, 0, 0};
     public static void main(String[] args) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        String[] line = br.readLine().split(" ");
-        int n = Integer.parseInt(line[0]);
-        int m = Integer.parseInt(line[1]);
-        graph = new int[n][m];
-        adjacentWater = new int[n][m];
-        for (int i = 0; i < n; i++) {
-            graph[i] = Arrays.stream(br.readLine().split(" "))
-                    .mapToInt(Integer::parseInt).toArray();
-            for (int j = 0; j < m; j++) {
-                if(graph[i][j] == 0)
+        int[] line = readLine(br);
+        graph = new int[line[0]][line[1]];
+        meltCnt = new int[line[0]][line[1]];
+        for (int i = 0; i < graph.length; i++) {
+            graph[i] = readLine(br);
+        }
+        for (int y = 0; y < graph.length; y++) {
+            for (int x = 0; x < graph[0].length; x++) {
+                if (graph[y][x] == 0)
                     continue;
-                ice.add(new Point(j, i));
+                iceLoc.add(new Point(x, y));
+                for (int i = 0; i < 4; i++) {
+                    int nextX = dirX[i] + x;
+                    int nextY = dirY[i] + y;
+                    if(isOutOfBounds(nextX, nextY) || graph[nextY][nextX] != 0)
+                        continue;
+                    meltCnt[y][x]++;
+                }
             }
         }
         br.close();
 
-        if (isDivIce() || ice.isEmpty()) {
-            System.out.println(0);
-            return;
-        }
-
-        int year = 0, i = 1;
-        while (!ice.isEmpty()) {
-            if (!melt()) {
-                break;
-            }
-
-            if (isDivIce()) {
-                year = i;
-                break;
-            }
-            i++;
-        }
-
-        System.out.println(year);
-    }
-
-    private static int getAdjacentWaterCnt(int i, int j) {
         int result = 0;
-        for (int k = 0; k < 4; k++) {
-            int nextX = j + dirX[k];
-            int nextY = i + dirY[k];
-            if(outOfBound(nextX, nextY) || graph[nextY][nextX] > 0)
-                continue;
-
+        while (!isDivided(graph)) {
+            melt();
             result++;
         }
-        return result;
+
+        if(iceLoc.isEmpty())
+            System.out.println(0);
+        else
+            System.out.println(result);
     }
 
-    private static boolean outOfBound(int x, int y) {
-        return 0 > x || x >= graph[0].length || 0 > y || y >= graph.length;
-    }
+    private static boolean isDivided(int[][] graph) {
+        if(iceLoc.isEmpty())
+            return true;
 
-    private static boolean melt() {
-        removedIce = new HashSet<>();
-        for (Point p : ice) {
-            int cnt = getAdjacentWaterCnt(p.y, p.x);
-            if(cnt > 0)
-                removedIce.add(new RemovedInfo(p, cnt));
-        }
-
-        if(removedIce.isEmpty())
-            return false;
-
-        for (RemovedInfo removedInfo : removedIce) {
-            Point removedLoc = removedInfo.p;
-            graph[removedLoc.y][removedLoc.x] -= removedInfo.cnt;
-            if(graph[removedLoc.y][removedLoc.x] <= 0)
-                ice.remove(removedLoc);
-        }
-        return true;
-    }
-
-    static class RemovedInfo {
-        Point p;
-        int cnt;
-
-        public RemovedInfo(Point p, int cnt) {
-            this.p = p;
-            this.cnt = cnt;
-        }
-    }
-
-    private static boolean isDivIce() {
         boolean[][] visited = new boolean[graph.length][graph[0].length];
-        boolean isStart = true;
-        for (Point p : ice) {
-            if(visited[p.y][p.x])
-                continue;
-
-            if (!isStart)
-                return true;
-
-            bfs(p, visited);
-            isStart = false;
-        }
-        return false;
-    }
-
-    private static void bfs(Point p, boolean[][] visited) {
         Queue<Point> qu = new LinkedList<>();
-        qu.offer(p);
-        visited[p.y][p.x] = true;
+        Point start = iceLoc.get(0);
+        qu.offer(start);
+        visited[start.y][start.x] = true;
 
         while (!qu.isEmpty()) {
-            Point now = qu.poll();
-            int nextX, nextY;
+            Point current = qu.poll();
             for (int i = 0; i < 4; i++) {
-                nextX = now.x + dirX[i];
-                nextY = now.y + dirY[i];
-
-                if (outOfBound(nextX, nextY)
-                        || visited[nextY][nextX]
-                        || graph[nextY][nextX] <= 0)
+                int nextX = dirX[i] + current.x;
+                int nextY = dirY[i] + current.y;
+                if(isOutOfBounds(nextX, nextY)
+                        || graph[nextY][nextX] <= 0
+                        || visited[nextY][nextX])
                     continue;
-
                 visited[nextY][nextX] = true;
                 qu.offer(new Point(nextX, nextY));
             }
         }
+
+        for (Point ice : iceLoc) {
+            if(!visited[ice.y][ice.x])
+                return true;
+        }
+
+        return false;
+    }
+
+    private static void melt() {
+        List<Point> meltAll = new LinkedList<>();
+        for (Point ice : iceLoc) {
+            if(graph[ice.y][ice.x] <= 0)
+                continue;
+            graph[ice.y][ice.x] -= meltCnt[ice.y][ice.x];
+            if (graph[ice.y][ice.x] > 0)
+                continue;
+
+            meltAll.add(ice);
+        }
+
+        for (Point melt : meltAll) {
+            for (int i = 0; i < 4; i++) {
+                int nextX = dirX[i] + melt.x;
+                int nextY = dirY[i] + melt.y;
+                if(isOutOfBounds(nextX, nextY) || graph[nextY][nextX] <= 0)
+                    continue;
+                meltCnt[nextY][nextX]++;
+            }
+        }
+
+        iceLoc.removeAll(meltAll);
+    }
+
+    private static int[][] cloneGraph() {
+        int[][] result = new int[graph.length][graph[0].length];
+        for (int i = 0; i < graph.length; i++) {
+            for (int j = 0; j < graph[0].length; j++) {
+                result[i][j] = graph[i][j];
+            }
+        }
+        return result;
+    }
+
+    private static boolean isOutOfBounds(int x, int y) {
+        return x < 0 || graph[0].length <= x || y < 0 || graph.length <= y;
+    }
+
+    private static int[] readLine(BufferedReader br) throws IOException {
+        return Arrays.stream(br.readLine().split(" ")).mapToInt(Integer::parseInt).toArray();
     }
 }
