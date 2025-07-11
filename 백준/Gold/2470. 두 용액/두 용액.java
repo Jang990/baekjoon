@@ -6,32 +6,34 @@ import java.util.Arrays;
 public class Main {
     public static void main(String[] args) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        int n = Integer.parseInt(br.readLine());
-        int[] arr = Arrays.stream(br.readLine().split(" "))
-                .mapToInt(Integer::parseInt).toArray();
+        int N = Integer.parseInt(br.readLine());
+        int[] inputs = Arrays.stream(br.readLine().split(" "))
+                .mapToInt(Integer::parseInt)
+                .sorted()
+                .toArray();
         br.close();
-        Arrays.sort(arr);
 
+        int leftIdx = 0;
+        int rightIdx = N - 1;
 
-        int minusIdx = 0;
-        int plusIdx = arr.length-1;
-        int[] result = {1_000_000_000, 1_000_000_000};
-
-        while (minusIdx < plusIdx) {
-            int sum = arr[minusIdx] + arr[plusIdx];
-            if (Math.abs(sum) < Math.abs(result[0] + result[1])) {
-                result[0] = arr[minusIdx];
-                result[1] = arr[plusIdx];
+        int resultL = inputs[leftIdx];
+        int resultR = inputs[rightIdx];
+        int result = Math.abs(resultR + resultL);
+        while (leftIdx < rightIdx && result != 0) {
+            int current = inputs[rightIdx] + inputs[leftIdx];
+            if (Math.abs(current) < result) {
+                resultL = inputs[leftIdx];
+                resultR = inputs[rightIdx];
+                result = Math.abs(current);
             }
 
-            if (sum == 0)
-                break;
-            else if (sum < 0)
-                minusIdx++;
-            else
-                plusIdx--;
+            if (current < 0) {
+                leftIdx++;
+            } else {
+                rightIdx--;
+            }
         }
 
-        System.out.println(result[0] + " " + result[1]);
+        System.out.println(resultL + " " + resultR);
     }
 }
