@@ -3,37 +3,34 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Comparator;
 import java.util.PriorityQueue;
-import java.util.Stack;
 
 public class Main {
     public static void main(String[] args) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        PriorityQueue<Integer> left = new PriorityQueue<>(Comparator.reverseOrder());
-        PriorityQueue<Integer> right = new PriorityQueue<>();
+        int N = Integer.parseInt(br.readLine());
+        PriorityQueue<Integer> pqLeft = new PriorityQueue<>(Comparator.comparing(Integer::intValue).reversed());
+        PriorityQueue<Integer> pqRight = new PriorityQueue<>();
 
-        int n = Integer.valueOf(br.readLine());
-
+        int mid = Integer.parseInt(br.readLine());
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < n; i++) {
-            int num = Integer.valueOf(br.readLine());
-            if (!right.isEmpty() && right.peek() < num)
-                right.offer(num);
-            else
-                left.offer(num);
+        sb.append(mid).append("\n");
+        for (int i = 1; i < N; i++) {
+            int val = Integer.parseInt(br.readLine());
+            if(val < mid) pqLeft.offer(val);
+            else pqRight.offer(val);
 
-            if (!right.isEmpty() && right.size() > left.size()) {
-                left.offer(right.poll());
+            int diff = pqLeft.size() - pqRight.size();
+            if (diff > 0) {
+                pqRight.offer(mid);
+                mid = pqLeft.poll();
+            } else if(diff < -1) {
+                pqLeft.offer(mid);
+                mid = pqRight.poll();
             }
-
-            if (!left.isEmpty() && right.size() + 1 < left.size()) {
-                right.offer(left.poll());
-            }
-
-            sb.append(left.peek()+"\n");
+            sb.append(mid).append("\n");
         }
         br.close();
 
         System.out.println(sb);
     }
-
 }
