@@ -1,58 +1,72 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.StringTokenizer;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
 
 public class Main {
-    static int result = 0;
-    private static boolean[][] graph;
-
+    static List<Integer>[] graph;
     public static void main(String[] args) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         int N = Integer.parseInt(br.readLine());
-        StringTokenizer st = new StringTokenizer(br.readLine());
-        int removedNode = Integer.parseInt(br.readLine());
-        br.close();
+        graph = new List[N];
+        for (int i = 0; i < graph.length; i++) {
+            graph[i] = new LinkedList<>();
+        }
 
+        int[] nodes = Arrays.stream(br.readLine().split(" "))
+                .mapToInt(Integer::parseInt)
+                .toArray();
         int root = -1;
-        graph = new boolean[N][N];
-        for (int i = 0; i < N; i++) {
-            int parent = Integer.parseInt(st.nextToken());
-            if (parent == -1) {
+        for (int i = 0; i < nodes.length; i++) {
+            if (nodes[i] == -1) {
                 root = i;
                 continue;
             }
-            if(parent == removedNode || i == removedNode)
-                continue;
-            graph[parent][i] = true;
+            graph[nodes[i]].add(i);
         }
+        int start = Integer.parseInt(br.readLine());
+        br.close();
 
-        if (root == removedNode) {
+        if (nodes[start] == -1) {
             System.out.println(0);
             return;
         }
 
-        dfs(root);
-        System.out.println(result);
+        graph[nodes[start]].remove(Integer.valueOf(start));
+        System.out.println(countLeaf(root));
     }
 
-    private static void dfs(int node) {
-        if (isLeaf(node)) {
-            result++;
-            return;
+    private static int countLeaf(int root) {
+        Queue<Integer> qu = new LinkedList<>();
+        boolean[] visited = new boolean[graph.length];
+        int visitedCnt = 0;
+        qu.offer(root);
+        visited[root] = true;
+        visitedCnt++;
+
+        while (!qu.isEmpty()) {
+            int current = qu.poll();
+            for (int next : graph[current]) {
+                if(visited[next])
+                    continue;
+                qu.offer(next);
+                visited[next] = true;
+                visitedCnt++;
+            }
         }
 
-        for (int i = 0; i < graph[0].length; i++) {
-            if(graph[node][i])
-                dfs(i);
+        int result = 0;
+        for (int i = 0; i < graph.length; i++) {
+            if(visited[i] && graph[i].isEmpty() && i != root)
+                result++;
         }
-    }
 
-    private static boolean isLeaf(int node) {
-        for (int i = 0; i < graph[0].length; i++) {
-            if(graph[node][i])
-                return false;
-        }
-        return true;
+        if(result == 0 && visitedCnt == 1)
+            return 1;
+        
+        return result;
     }
 }
