@@ -1,48 +1,46 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Stack;
+import java.util.*;
 
 public class Main {
     public static void main(String[] args) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        String line = br.readLine();
+        String[] input = br.readLine().split("");
         br.close();
-        System.out.println(calc(line));
-    }
 
-    private static int calc(String line) {
-        Stack<Character> st = new Stack<>();
-        int mul = 1;
-        int result = 0;
-        for (int i = 0; i < line.length(); i++) {
-            char c = line.charAt(i);
-            switch (c) {
-                case '(':
-                    mul *= 2;
-                    st.push(c);
-                    break;
-                case '[':
-                    mul *= 3;
-                    st.push(c);
-                    break;
-                case ')':
-                    if(st.isEmpty() || st.peek() != '(')
-                        return 0;
-                    if(line.charAt(i-1) == '(') result += mul;
-                    mul /= 2;
-                    st.pop();
-                    break;
-                case ']':
-                    if(st.isEmpty() || st.peek() != '[')
-                        return 0;
-                    st.pop();
-                    if(line.charAt(i-1) == '[') result += mul;
-                    mul /= 3;
-                    break;
+        List<String> correctKeys = List.of("(", ")", "[", "]");
+        Stack<String> st = new Stack<>();
+        int[] depth = new int[32];
+        for (int i = 0; i < input.length; i++) {
+            if (!correctKeys.contains(input[i])) {
+                depth[1] = 0;
+                break;
             }
+
+            if (input[i].equals("[") || input[i].equals("(")) {
+                st.push(input[i]);
+                continue;
+            }
+
+            if (
+                    st.isEmpty()
+                            || (input[i].equals("]") && "(".equals(st.peek()))
+                            || (input[i].equals(")") && "[".equals(st.peek()))
+            ) {
+                depth[1] = 0;
+                break;
+            }
+
+            int num = input[i].equals("]") ? 3 : 2;
+            if(depth[st.size() +1 ] == 0)
+                depth[st.size()] += num;
+            else
+                depth[st.size()] += num * depth[st.size() + 1];
+            depth[st.size() + 1] = 0;
+            st.pop();
         }
 
-        return st.isEmpty() ? result : 0;
+        System.out.println(depth[1]);
     }
 }
