@@ -1,84 +1,76 @@
-import java.util.*;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Arrays;
+import java.util.Stack;
 
 public class Main {
+    static int[] num;
+    static int[] cond;
+    static int max = Integer.MIN_VALUE;
+    static int min = Integer.MAX_VALUE;
+    public static void main(String[] args) throws IOException {
+        /*
+        cond 조합하기. - 백트레킹
+        조합한 cond 계산하기 - 최솟값 최댓값에 넣기
+        출력
+         */
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        int numCnt = Integer.parseInt(br.readLine());
+        num = readLine(br);
+        cond = readLine(br);
+        br.close();
 
-	static int N;
-	static int[] nums;
-	static int[] ops;
-	static int[] opsForCalc;
-	static boolean[] visited;
-	static final int PLUS = 0, MINUS = 1, MUTI = 2, DIVI = 3;
-	static int Max = Integer.MIN_VALUE, Min = Integer.MAX_VALUE;
-	
-	public static void main(String[] args) throws IOException {
-		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-		N = Integer.valueOf(br.readLine());
-		nums = new int[N];
-		
-		StringTokenizer st = new StringTokenizer(br.readLine());
-		for (int i = 0; i < N; i++) {
-			nums[i] = Integer.valueOf(st.nextToken());
-		}
-		
-		ops = new int[4];
-		int opsNum = 0;
-		st = new StringTokenizer(br.readLine());
-		for (int i = 0; i < 4; i++) {
-			ops[i] = Integer.valueOf(st.nextToken());
-			opsNum += ops[i];
-		}
-		br.close();
-		
-		
-		opsForCalc = new int[opsNum];
-		visited = new boolean[opsNum];
-		int idx = 0;
-		for (int i = 0; i < ops.length; i++) {
-			for (int j = 0; j < ops[i]; j++) {
-				opsForCalc[idx] = i;
-				idx++;
-			}
-		}
-		
-		DFS(0, nums[0]);
-		
-		System.out.println(Max + "\n" + Min);
-	}
+        rec(0, new Stack<>());
 
-	private static void DFS(int idx, int result) {
-		if(idx == N-1) {
-			Max = Math.max(Max, result);
-			Min = Math.min(Min, result);
-			return;
-		}
-		
-		int afterResult = 0;
-		for (int i = 0; i < opsForCalc.length; i++) {
-			if(visited[i]) 
-				continue;
-			
-			visited[i] = true;
-			switch (opsForCalc[i]) {
-				case PLUS:
-					afterResult = result + nums[idx+1];
-					break;
-				case MINUS:
-					afterResult = result - nums[idx+1];
-					break;
-				case MUTI:
-					afterResult = result * nums[idx+1];
-					break;
-				case DIVI:
-					afterResult = (int)(result / nums[idx+1]);
-					break;
-			}
-			
-			DFS(idx+1, afterResult);
-			visited[i] = false;
-		}
-	}
-	
-	
+        System.out.println(max);
+        System.out.println(min);
+    }
 
+    private static void rec(int depth, Stack<Integer> selected) {
+        if (depth >= num.length - 1) {
+            int result = calc(num, selected);
+            max = Math.max(max, result);
+            min = Math.min(min, result);
+            return;
+        }
+
+        for (int i = 0; i < 4; i++) {
+            if(cond[i] == 0)
+                continue;
+            cond[i]--;
+            selected.push(i);
+            rec(depth + 1, selected);
+            cond[i]++;
+            selected.pop();
+        }
+    }
+
+    private static int calc(int[] num, Stack<Integer> selected) {
+        int result = num[0];
+        for (int i = 0; i < selected.size(); i++) {
+            switch (selected.get(i)) {
+                case 0:
+                    result += num[i + 1];
+                    break;
+                case 1:
+                    result -= num[i + 1];
+                    break;
+                case 2:
+                    result *= num[i + 1];
+                    break;
+                case 3:
+                    result /= num[i + 1];
+                    break;
+            }
+        }
+
+        return result;
+    }
+
+    private static int[] readLine(BufferedReader br) throws IOException {
+        return Arrays.stream(br.readLine().split(" "))
+                .mapToInt(Integer::parseInt)
+                .toArray();
+    }
 }
