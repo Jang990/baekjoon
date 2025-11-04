@@ -1,72 +1,56 @@
+import java.awt.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.*;
+import java.util.List;
+
 public class Main {
-	
-	static int N;
-	static int M;
-	static int[][] maze;
-	static boolean[][] visited;
+    static List<int[]> graph = new ArrayList<>();
+    public static void main(String[] args) throws IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        String[] arg = br.readLine().split(" ");
+        int n = Integer.parseInt(arg[0]);
 
-	public static void main(String[] args) {
-		Scanner sc = new Scanner(System.in);
-		N = sc.nextInt();
-		M = sc.nextInt();
-		sc.nextLine();
-		
-		maze = new int[N][M];
-		visited = new boolean[N][M];
-		
-		for (int i = 0; i < N; i++) {
-			String str = sc.nextLine();
-			for (int j = 0; j < str.length(); j++) {
-				maze[i][j] = str.charAt(j) - '0';
-			}
-		}
-		
-		BFS(0, 0);
-		System.out.println(maze[N-1][M-1]);
-		
-		sc.close();
-	}
-	
-	private static void BFS(int x, int y) {
-		Queue<Node> que = new LinkedList<>();
-		int[] dirX = {0, 0, 1, -1};
-		int[] dirY = {1, -1, 0, 0};
-		
-		que.offer(new Node(x, y));
-		visited[y][x] = true;
-		
-		while(!que.isEmpty()) {
-			Node node = que.poll();
-			if(node.x == M-1 && node.y == N-1)
-				return;
-			
-			for (int i = 0; i < 4; i++) {
-				int nowX = node.x+ dirX[i];
-				int nowY = node.y+ dirY[i];
-				
-				if(rangeCheck(nowX, nowY) && !visited[nowY][nowX] && maze[nowY][nowX] != 0) {
-					visited[nowY][nowX] = true;
-					maze[nowY][nowX] = maze[node.y][node.x] + 1;
-					que.offer(new Node(nowX, nowY));
-				}
-			}
-			
-		}
-		
-	}
+        for (int i = 0; i < n; i++) {
+            graph.add(
+                    Arrays.stream(br.readLine().split(""))
+                            .mapToInt(Integer::parseInt)
+                            .toArray()
+            );
+        }
 
-	private static boolean rangeCheck(int nowX, int nowY) {
-		return (nowX >= 0 && nowX < M && nowY >= 0 && nowY < N);
-	}
+        br.close();
 
-	static class Node {
-		int x;
-		int y;
-		public Node(int x, int y) {
-			this.x = x;
-			this.y = y;
-		}
-	}
+        System.out.println(bfs());
+    }
 
+    static int[] dirX = {0, 0, 1, -1};
+    static int[] dirY = {1, -1, 0, 0};
+    private static int bfs() {
+        Queue<Point> qu = new LinkedList<>();
+        int[][] visited = new int[graph.size()][graph.get(0).length];
+        qu.offer(new Point(0, 0));
+        visited[0][0] = 1;
+
+        while (!qu.isEmpty()) {
+            Point current = qu.poll();
+            for (int i = 0; i < 4; i++) {
+                int nextX = current.x + dirX[i];
+                int nextY = current.y + dirY[i];
+                if(isOutOfBound(nextX, nextY)
+                        || graph.get(nextY)[nextX] == 0
+                        || (visited[nextY][nextX] != 0 && visited[current.y][current.x] + 1 >= visited[nextY][nextX]))
+                    continue;
+                visited[nextY][nextX] = visited[current.y][current.x] + 1;
+                qu.offer(new Point(nextX, nextY));
+            }
+        }
+
+        return visited[visited.length - 1][visited[0].length - 1];
+    }
+
+    private static boolean isOutOfBound(int x, int y) {
+        return y < 0 || graph.size() <= y || x < 0 || graph.get(0).length <= x;
+    }
 }
