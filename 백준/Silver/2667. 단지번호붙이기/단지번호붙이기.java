@@ -1,83 +1,68 @@
+import java.awt.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.*;
+import java.util.List;
+
 public class Main {
-	static int N;
-	static int[][] apt;
-	static boolean[][] check;
-	
-	public static void main(String[] args) {
-		Scanner sc = new Scanner(System.in);
-		N = sc.nextInt();
-		sc.nextLine();
-		
-		apt = new int[N][N];
-		check = new boolean[N][N];
-		
-		for (int i = 0; i < N; i++) {
-			String str = sc.nextLine();
-			for (int j = 0; j < N; j++) {
-				apt[i][j] = str.charAt(j) - '0';
-			}
-		}
-		
-		List<Integer> cntList = new ArrayList<>();
-		int cnt = 0;
-		for (int i = 0; i < apt.length; i++) {
-			for (int j = 0; j < apt[i].length; j++) {
-				if(check[i][j] == false && apt[i][j] == 1) {
-					cnt++;
-					int aptCnt = BFS(j, i);
-					cntList.add(aptCnt);
-				}
-			}
-		}
-		
-		StringBuffer sb = new StringBuffer();
-		sb.append(cnt + "\n");
-		cntList.stream().sorted().forEach(n -> sb.append(n+"\n"));
-		System.out.println(sb.toString());
-		
-		sc.close();
-	}
+    static int[][] graph;
+    static boolean[][] visited;
+    public static void main(String[] args) throws IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        int n = Integer.parseInt(br.readLine());
+        graph = new int[n][n];
+        visited = new boolean[n][n];
+        for (int i = 0; i < n; i++) {
+            graph[i] = Arrays.stream(br.readLine().split(""))
+                    .mapToInt(Integer::parseInt)
+                    .toArray();
+        }
+        br.close();
 
-	static class Node {
-		int x;
-		int y;
-		public Node(int x, int y) {
-			this.x = x;
-			this.y = y;
-		}
-	}
-	
-	private static int BFS(int x, int y) {
-		int cnt = 1;
-		Queue<Node> que = new LinkedList<>();
-		check[y][x] = true;
-		que.offer(new Node(x, y));
-		int[] dirX = {1, -1, 0, 0};
-		int[] dirY = {0, 0, 1, -1};
-		
-		while(!que.isEmpty()) {
-			Node node = que.poll();
-			
-			for (int i = 0; i < 4; i++) {
-				int nowX = node.x + dirX[i];
-				int nowY = node.y + dirY[i];
-				
-				if(rangeCheck(nowX, nowY) && 
-						!check[nowY][nowX] && 
-						apt[nowY][nowX] == 1) {
-					que.offer(new Node(nowX, nowY));
-					check[nowY][nowX] = true;
-					cnt++;
-				}
-			}
-		}
-		
-		return cnt;
-	}
+        List<Integer> groups = new LinkedList<>();
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                if(graph[i][j] == 0 || visited[i][j])
+                    continue;
+                groups.add(bfs(j, i));
+            }
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append(groups.size()).append("\n");
+        groups.stream().sorted()
+                .forEach(i -> sb.append(i).append("\n"));
+        System.out.println(sb);
+    }
 
-	private static boolean rangeCheck(int nowX, int nowY) {
-		return (nowX >= 0 && nowX < N && nowY >= 0 && nowY < N);
-	}
+    static int[] dirX = {0, 0, 1, -1};
+    static int[] dirY = {1, -1, 0, 0};
+    private static int bfs(int x, int y) {
+        int result = 1;
+        Queue<Point> qu = new LinkedList<>();
+        qu.offer(new Point(x, y));
+        visited[y][x] = true;
 
+        while (!qu.isEmpty()) {
+            Point current = qu.poll();
+            for (int i = 0; i < 4; i++) {
+                int nextX = current.x + dirX[i];
+                int nextY = current.y + dirY[i];
+                if (isOutOfBound(nextX, nextY)
+                        || graph[nextY][nextX] == 0
+                        || visited[nextY][nextX])
+                    continue;
+
+                qu.offer(new Point(nextX, nextY));
+                visited[nextY][nextX] = true;
+                result++;
+            }
+        }
+        return result;
+    }
+
+    private static boolean isOutOfBound(int x, int y) {
+        return x < 0 || graph[0].length <= x
+                || y < 0 || graph.length <= y;
+    }
 }
