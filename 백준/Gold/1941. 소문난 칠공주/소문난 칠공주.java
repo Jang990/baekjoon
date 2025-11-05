@@ -3,91 +3,80 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Queue;
 
 public class Main {
-
-    private static String[][] room = new String[5][5];
-    private static boolean[][] visited;
-    private static int result = 0;
-
-
+    static String[][] graph = new String[5][5];
+    static int result = 0;
     public static void main(String[] args) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         for (int i = 0; i < 5; i++) {
-            room[i] = br.readLine().split("");
-        }
+            graph[i] = br.readLine().split("");
+        };
         br.close();
 
-        visited = new boolean[5][5];
-
-        combine(0, 0, new int[7]);
-
+        rec(0, -1, new boolean[5][5]);
         System.out.println(result);
     }
 
-    private static void combine(int depth, int choice, int[] buf) {
-        if (choice == buf.length) {
-            if(isLinked7Princess(buf))
+    private static void rec(int depth, int selected, boolean[][] visited) {
+        if (depth == 7) {
+            if(is7(visited))
                 result++;
             return;
         }
 
-        if(depth == 25)
-            return;
-
-        combine(depth+1, choice, buf);
-        buf[choice] = depth;
-        combine(depth+1, choice+1, buf);
+        for (int i = selected + 1; i < 25; i++) {
+            int y = i / 5;
+            int x = i % 5;
+            visited[y][x] = true;
+            rec(depth + 1, i, visited);
+            visited[y][x] = false;
+        }
     }
 
-    static int[] dirX = {0, 0, 1, -1},
-            dirY = {1, -1, 0, 0};
-
-    private static boolean isLinked7Princess(int[] buf) {
-        Queue<Point> qu = new LinkedList<>();
-        List<Point> list = convert(buf);
-        Point start = convertPoint(buf[0]);
-        qu.offer(start);
-
-        int linkedPrincess = 0;
-        int som = 0;
-
-        while (!qu.isEmpty()) {
-            Point now = qu.poll();
-            int nextX, nextY;
-            for (int i = 0; i < 4; i++) {
-                nextX = now.x + dirX[i];
-                nextY = now.y + dirY[i];
-                Point next = new Point(nextX, nextY);
-                if (!list.contains(next)) {
-                    continue;
+    private static boolean is7(boolean[][] visited) {
+        int startX = -1, startY = -1;
+        for (int y = 0; y < 5; y++) {
+            for (int x = 0; x < 5; x++) {
+                if (visited[y][x]) {
+                    startX = x;
+                    startY = y;
                 }
-
-                list.remove(next);
-                qu.offer(next);
-                linkedPrincess++;
-                if(room[nextY][nextX].equals("S"))
-                    som++;
             }
         }
 
-        if(linkedPrincess != 7 || som < 4)
-            return false;
+        Queue<Point> qu = new LinkedList<>();
+        boolean[][] search = new boolean[5][5];
+        qu.offer(new Point(startX, startY));
+        search[startY][startX] = true;
 
-        return true;
-    }
+        int[] dirX = {0, 0, -1, 1};
+        int[] dirY = {-1, 1, 0, 0};
+        int searchCount = 0, countS = 0;
+        while (!qu.isEmpty()) {
+            Point current = qu.poll();
+            searchCount++;
+            if(graph[current.y][current.x].equals("S"))
+                countS++;
 
-    private static LinkedList<Point> convert(int[] buf) {
-        LinkedList<Point> list = new LinkedList<>();
-        for (int i = 0; i < buf.length; i++) {
-            list.add(convertPoint(buf[i]));
+            for (int i = 0; i < 4; i++) {
+                int nextX = current.x + dirX[i];
+                int nextY = current.y + dirY[i];
+                if(isOutOfBound(nextX) || isOutOfBound(nextY))
+                    continue;
+                if(!visited[nextY][nextX] || search[nextY][nextX])
+                    continue;
+
+                search[nextY][nextX] = true;
+                qu.offer(new Point(nextX, nextY));
+            }
         }
-        return list;
+
+        return searchCount == 7 && countS >= 4;
     }
 
-    private static Point convertPoint(int buf) {
-        return new Point(buf % 5, buf / 5);
+    private static boolean isOutOfBound(int num) {
+        return num < 0 || 5 <= num;
     }
 }
