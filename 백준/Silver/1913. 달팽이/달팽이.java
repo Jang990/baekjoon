@@ -1,91 +1,66 @@
-import java.util.Scanner;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 
 public class Main {
-	private static int x = 0;
-	private static int y = 0;
-	private static int step = 1;
-	private static int snailNumber = 1;
-	private static int searchNumber = 0;
-	private static int searchX = 0;
-	private static int searchY = 0;
-	
-	
-	public static void main(String[] args) {
-		Scanner sc = new Scanner(System.in);
-		int num = sc.nextInt();
-		if(num % 2 == 0) return;
-		
-		searchNumber = sc.nextInt();
-		if(searchNumber < 1 || searchNumber > (num*num)) {
-			return;
-		}
-		
-		int[][] map = new int[num][num];
-		
-		int centerNumber = num / 2;
-		x = centerNumber;
-		y = centerNumber;
-		
-		snailNumber = 1;
-		step = 1;
-		int checkNum = num -1;
-		
-		setSnailNumber(map, x, y);
-		
-		for (int i = 0; i < num-1; i++) {
-//			moveY(map);
-			int movedY = y - step;
-			while(movedY != y) {
-				if (movedY > y) y++;
-				else y--;
-				setSnailNumber(map, x, y);
-			}
-			step *= -1;
-//			moveX(map);
-			int movedX = x - step;
-			while(movedX != x) {
-				if (movedX > x) x++;
-				else x--;
-				setSnailNumber(map, x, y);
-			}
-			
-			if((step*step) == (int)(checkNum*checkNum)) {
-//				moveY(map);
-				movedY = y - step;
-				while(movedY != y) {
-					if (movedY > y) y++;
-					else y--;
-					setSnailNumber(map, x, y);
-				}
-			}
-			else if (step < 0) step--;
-			else step++;
-		}
-		
-		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < map.length; i++) {
-			for (int j = 0; j < map[i].length; j++) {
-				sb.append(map[i][j]+ " ");
-			}
-			sb.append("\n");
-		}
-		System.out.print(sb.toString());
-		System.out.println(searchY + " " + searchX);
-		sc.close();
-		
-	}
-	
-	private static void setSnailNumber(int[][] map, int x, int y) {
-		map[y][x] = snailNumber;
-		checkNumber();
-		snailNumber++;
-	}
+    static int[] dx = {0, 1, 0 ,-1};
+    static int[] dy = {1, 0, -1, 0};
+    static int dir = 0;
+    static int routeId;
+    private static int x;
+    private static int y;
+    private static int[][] map;
 
-	private static void checkNumber() {
-		if(snailNumber == searchNumber) {
-			searchX = x + 1;
-			searchY = y + 1;
-		}
-	}
+    public static void main(String[] args) throws IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        int N = Integer.parseInt(br.readLine());
+        map = new int[N][N];
+        int num = Integer.parseInt(br.readLine());
+        br.close();
+        x = 0;
+        y = 0;
+        routeId = N * N;
+        map[y][x] = routeId--;
+        while (canMove())
+            move();
+        StringBuilder mapString = new StringBuilder();
+        StringBuilder locationString = new StringBuilder();
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++) {
+                mapString.append(map[i][j]).append(" ");
+                if(map[i][j] == num)
+                    locationString.append(i + 1).append(" ").append(j + 1);
+            }
+            mapString.append("\n");
+        }
+        mapString.deleteCharAt(mapString.length() - 1);
+        mapString.deleteCharAt(mapString.length() - 1);
 
+        System.out.println(mapString);
+        System.out.println(locationString);
+    }
+
+    private static void move() {
+        if(isOutOfBound(nextX(), nextY()) || map[nextY()][nextX()] != 0)
+            dir = (dir + 1) % 4;
+        x = nextX();
+        y = nextY();
+        map[y][x] = routeId--;
+    }
+
+    private static int nextY() {
+        return y + dy[dir];
+    }
+
+    private static int nextX() {
+        return x + dx[dir];
+    }
+
+    private static boolean canMove() {
+        return x != map.length / 2 || y != map.length / 2;
+    }
+
+    private static boolean isOutOfBound(int x, int y) {
+        return x < 0 || map[0].length <= x || y < 0 || map.length <= y;
+    }
 }
