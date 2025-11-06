@@ -1,49 +1,54 @@
 import java.util.*;
-
 class Solution {
+    int min[];
     List<Integer>[] graph;
-    int[] min;
+    
     public int[] solution(int n, int[][] roads, int[] sources, int destination) {
-        min = new int[n+1];
-        Arrays.fill(min, Integer.MAX_VALUE);
-        initGraph(n, roads);
-        search(destination);
-
-        int[] result = new int[sources.length];
-        for (int i = 0; i < sources.length; i++) {
-            result[i] = min[sources[i]];
-            if(result[i] == Integer.MAX_VALUE)
-                result[i] = -1;
-        }
-
-        return result;
-    }
-
-    private void initGraph(int n, int[][] roads) {
         graph = new List[n + 1];
-        for (int i = 1; i <= n; i++) {
-            graph[i] = new LinkedList<>();
+        for(int i = 0; i <= n; i++)
+            graph[i] = new ArrayList<Integer>();
+        for(int i = 0; i < roads.length; i++) {
+            int n1 = roads[i][0];
+            int n2 = roads[i][1];
+            graph[n1].add(n2);
+            graph[n2].add(n1);
         }
         
-        for (int[] road : roads) {
-            graph[road[0]].add(road[1]);
-            graph[road[1]].add(road[0]);
+        min = new int[n + 1];
+        Arrays.fill(min, Integer.MAX_VALUE);
+        search(destination);
+        
+        int[] answer = new int[sources.length];
+        for(int i = 0; i < answer.length; i++)
+            answer[i] = min[sources[i]] == Integer.MAX_VALUE ? -1 : min[sources[i]];
+        return answer;
+    }
+    
+    void search(int start) {
+        PriorityQueue<Edge> pq = new PriorityQueue<>(Comparator.comparingInt(e -> e.w));
+        pq.offer(new Edge(0, start, 0));
+        
+        while(!pq.isEmpty()) {
+            Edge current = pq.poll();
+            if(current.w >= min[current.e])
+                continue;
+            min[current.e] = current.w;
+            
+            int currentLoc = current.e;
+            for(Integer next : graph[currentLoc]) {
+                if(min[next] <= current.w)
+                    continue;
+                pq.offer(new Edge(currentLoc, next, min[currentLoc] + 1));
+            }
         }
     }
-
-    private void search(int destination) {
-        Queue<Integer> qu = new LinkedList<>();
-        min[destination] = 0;
-        qu.offer(destination);
-
-        while (!qu.isEmpty()) {
-            int now = qu.poll();
-            for (int next : graph[now]) {
-                if(min[next] != Integer.MAX_VALUE && min[next] <= min[now] + 1)
-                    continue;
-                min[next] = min[now] + 1;
-                qu.offer(next);
-            }
+    
+    static class Edge {
+        int s,e,w;
+        public Edge(int s, int e, int w) {
+            this.s = s;
+            this.e = e;
+            this.w = w;
         }
     }
 }
