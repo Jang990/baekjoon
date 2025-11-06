@@ -1,54 +1,30 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedList;
+import java.util.Queue;
 
 public class Main {
     public static void main(String[] args) throws IOException {
+        Queue<String> qu = new LinkedList<>();
+        // qu의 peek가 아닌 차가 먼저 나왔다 => 추월했다.
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         int N = Integer.parseInt(br.readLine());
-
-        List<String> before = new ArrayList<>();
-        boolean[] overtaking = new boolean[N];
         for (int i = 0; i < N; i++) {
-            before.add(br.readLine());
+            qu.offer(br.readLine());
         }
-
-        List<String> after = new ArrayList<>();
-        for (int i = 0; i < N; i++) {
-            after.add(br.readLine());
-        }
-        br.close();
-
-        before.forEach(car -> {
-            int afterIdx = after.indexOf(car);
-            int beforeIdx = before.indexOf(car);
-
-            List<String> oriForwardCars = before.subList(0, beforeIdx);
-            List<String> nowForwardCars = after.subList(0, afterIdx);
-            for (int i = 0; i < nowForwardCars.size(); i++) {
-                String now = nowForwardCars.get(i);
-                int oriIdx = before.indexOf(now);
-                if (overtaking[oriIdx]) {
-                    continue;
-                }
-
-                if (oriForwardCars.contains(now)) {
-                    continue;
-                }
-
-                overtaking[oriIdx] = true;
-            }
-        });
 
         int result = 0;
-        for (int i = 0; i < overtaking.length; i++) {
-            if (overtaking[i]) {
-                result++;
+        for (int i = 0; i < N; i++) {
+            String output = br.readLine();
+            if (output.equals(qu.peek())) {
+                qu.poll();
+                continue;
             }
+            qu.remove(output);
+            result++;
         }
-
         System.out.println(result);
+        br.close();
     }
 }
