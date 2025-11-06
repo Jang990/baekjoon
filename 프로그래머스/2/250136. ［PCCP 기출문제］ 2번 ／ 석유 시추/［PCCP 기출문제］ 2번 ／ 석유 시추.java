@@ -1,56 +1,83 @@
-import java.awt.*;
 import java.util.*;
+import java.awt.*;
 
 class Solution {
-    static int[] oils;
-    public static int solution(int[][] land) {
-        oils = new int[land[0].length];
-        boolean[][] visited = new boolean[land.length][land[0].length];
-        for (int y = 0; y < land.length; y++) {
-            for (int x = 0; x < land[0].length; x++) {
-                if(visited[y][x] || land[y][x] == 0) continue;
-                init(land, visited, new Point(x, y));
-            }
-        }
+    static int[][] graph;
+    static int[][] id;
+    static HashMap<Integer, Integer> idAndSize = new HashMap<>();
 
+    int currentId = 1;
+    public int solution(int[][] land) {
+        // 땅마다 ID + 사이즈 붙혀주기
+        // 세로땅마다 방문ID, 누적합 기록하기
+        // 최고 누적합 출력
+        graph = land;
+        id = new int[land.length][land[0].length];
+        
+        checkIdAndSize();
+        
         int answer = 0;
-        for (int i = 0; i < oils.length; i++) {
-            answer = Math.max(answer, oils[i]);
+        for(int x = 0; x < graph[0].length; x++) {
+            answer = Math.max(checkOil(x), answer);
         }
         return answer;
     }
-
-    static int[] dirX = {0, 0, -1, 1};
-    static int[] dirY = {-1, 1, 0, 0};
-    private static void init(int[][] land, boolean[][] visited, Point p) {
-        Queue<Point> qu = new LinkedList<>();
-        Set<Integer> xLoc = new HashSet<>();
-        qu.offer(p);
-        xLoc.add(p.x);
-        visited[p.y][p.x] = true;
-        int size = 1;
-
-        while (!qu.isEmpty()) {
-            Point now = qu.poll();
-            for (int i = 0; i < 4; i++) {
-                int nextX = now.x + dirX[i];
-                int nextY = now.y + dirY[i];
-                if(isOutOfBound(land,nextX,nextY)) continue;
-                if(visited[nextY][nextX] || land[nextY][nextX] != 1) continue;
-
-                visited[nextY][nextX] = true;
-                qu.offer(new Point(nextX, nextY));
-                size++;
-                xLoc.add(nextX);
+    
+    int checkOil(int x) {
+        Set<Integer> visitedIds = new HashSet<>();
+        int oil = 0;
+        for(int y = 0; y < graph.length; y++) {
+            int currentId = id[y][x];
+            if(currentId == 0)
+                continue;
+            if(visitedIds.contains(currentId))
+                continue;
+            oil += idAndSize.get(currentId);
+            visitedIds.add(currentId);
+        }
+        return oil;
+    }
+    
+    void checkIdAndSize() {
+        for(int i = 0; i < graph.length; i++){
+            for(int j = 0; j < graph[0].length; j++) {
+                if(graph[i][j] == 0 || (graph[i][j] == 1 && id[i][j] != 0))
+                    continue;
+                int size = checkId(new Point(j, i), currentId);
+                idAndSize.put(currentId, size);
+                currentId++;
             }
         }
-
-        for (Integer x : xLoc) {
-            oils[x] += size;
-        }
     }
-
-    private static boolean isOutOfBound(int[][] land, int x, int y) {
-        return 0 > x || x >= land[0].length || 0 > y || y >= land.length;
+    
+    int[] dirX = {0,0,1,-1};
+    int[] dirY = {1,-1,0,0};
+    int checkId(Point start, int currentId) {
+        int size = 1;
+        Queue<Point> qu = new LinkedList<>();
+        qu.offer(start);
+        id[start.y][start.x] = currentId;
+        
+        while(!qu.isEmpty()) {
+            Point next = qu.poll();
+            for(int i = 0; i < 4; i++) {
+                int nextX = next.x + dirX[i];
+                int nextY = next.y + dirY[i];
+                
+                if(isOutOfBound(nextX, nextY) 
+                   || graph[nextY][nextX] != 1 
+                   || id[nextY][nextX] != 0)
+                    continue;
+                qu.offer(new Point(nextX, nextY));
+                id[nextY][nextX] = currentId;
+                size++;
+            }
+        }
+        
+        return size;
+    }
+    
+    boolean isOutOfBound(int x, int y) {
+        return x < 0 || graph[0].length <= x || y < 0 || graph.length <= y; 
     }
 }
