@@ -1,0 +1,23 @@
+import java.io.*;
+import java.util.*;
+import java.util.stream.*;
+class Main {
+	public static void main(String[] args) throws Exception {
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		int cnt = Integer.parseInt(br.readLine());
+
+		int result = 0;
+		int[] arr = Arrays.stream(br.readLine().split(" ")).mapToInt(Integer::valueOf).toArray();
+		HashSet<Integer> set = new HashSet<>();
+		for(int num : arr) {
+			if(set.contains(num))
+				set.remove(num);
+			else
+				set.add(num);
+		}
+
+		for(int num : set)
+			result += num;
+		System.out.println(result);
+	}
+}
