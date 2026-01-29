@@ -1,0 +1,42 @@
+import java.io.*;
+import java.util.*;
+import java.util.stream.*;
+class Main {
+	public static void main(String[] args) throws Exception {
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		int testCase = Integer.parseInt(br.readLine());
+
+		StringBuilder sb = new StringBuilder();
+		while(testCase-- > 0) {
+			int[] arrA = readLine(br);
+			int[] arrB = readLine(br);
+
+			int[][] scores = new int[2][5];
+			for(int i = 1; i < arrA.length; i++)
+				scores[0][arrA[i]]++;
+			for(int i = 1; i < arrB.length; i++)
+				scores[1][arrB[i]]++;
+
+			boolean isDraw = true;
+			for(int i = 4; i > 0; i--) {
+				if(scores[0][i] == scores[1][i])
+					continue;
+				if(scores[0][i] > scores[1][i])
+					sb.append("A\n");
+				else
+					sb.append("B\n");
+				isDraw = false;
+				break;
+			}
+			if(isDraw)
+				sb.append("D\n");
+		}
+
+		System.out.println(sb);
+	}
+
+	private static int[] readLine(BufferedReader br) throws Exception {
+		return Arrays.stream(br.readLine().split(" ")).mapToInt(Integer::valueOf).toArray();
+		
+	}
+}
