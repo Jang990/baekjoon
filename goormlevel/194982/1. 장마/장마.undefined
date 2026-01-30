@@ -1,0 +1,47 @@
+import java.io.*;
+import java.util.*;
+class Main {
+	public static void main(String[] args) throws Exception {
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		int[] input = readLine(br);
+		int regionCnt = input[0];
+		int rainCnt = input[1];
+		
+		int[] height = readLine(br);
+		int[] regionRainCnt = new int[regionCnt];
+		boolean[] rainIn3Days = new boolean[regionCnt];
+		for(int day = 1; day <= rainCnt; day++) {
+			int[] startEnd = readLine(br);
+			int start = startEnd[0] - 1;
+			int end = startEnd[1] - 1;
+
+			for(int i = start; i <= end; i++) {
+				regionRainCnt[i]++;
+				rainIn3Days[i] = true;
+			}
+
+			if(day % 3 == 0) {
+				// 배수
+				drain(regionRainCnt, rainIn3Days);
+				rainIn3Days = new boolean[regionCnt];
+			}
+		}
+
+		StringBuilder sb = new StringBuilder();
+		for(int i = 0; i < regionCnt; i++) {
+			sb.append(height[i] + regionRainCnt[i]).append(" ");
+		}
+		System.out.println(sb);
+	}
+
+	public static void drain(int[] regionRainCnt, boolean[] rainIn3Days) {
+		for(int i = 0; i < regionRainCnt.length; i++) {
+			if(rainIn3Days[i])
+				regionRainCnt[i]--;
+		}
+	}
+
+	public static int[] readLine(BufferedReader br) throws Exception {
+		return Arrays.stream(br.readLine().split(" ")).mapToInt(Integer::parseInt).toArray();
+	}
+}
