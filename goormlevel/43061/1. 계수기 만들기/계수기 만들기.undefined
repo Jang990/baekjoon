@@ -1,0 +1,35 @@
+import java.io.*;
+import java.util.*;
+class Main {
+	static int[] max, base;
+	public static void main(String[] args) throws Exception {
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		int N = readLine(br)[0];	
+		max = readLine(br);
+		base = readLine(br);
+		int clickCnt = readLine(br)[0];
+		
+		for(int i = 0; i < N; i++)
+			max[i]++;
+		
+		up(N - 1, clickCnt);
+		
+		StringBuilder sb = new StringBuilder();
+		for(int num : base)
+			sb.append(num);
+		System.out.println(sb);
+	}
+
+	private static void up(int idx, int num) {
+		base[idx] += num;
+		
+		int nextNum = base[idx] / max[idx];
+		base[idx] %= max[idx];
+		if(idx > 0)
+			up(idx - 1, nextNum);
+	}
+
+	private static int[] readLine(BufferedReader br) throws Exception {
+		return Arrays.stream(br.readLine().split(" ")).mapToInt(Integer::parseInt).toArray();
+	}
+}
