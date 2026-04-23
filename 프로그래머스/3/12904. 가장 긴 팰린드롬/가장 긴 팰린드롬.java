@@ -1,24 +1,24 @@
 class Solution
 {
     public static int solution(String s) {
-        int answer = 0;
-        for (int i = 0; i < s.length(); i++) {
-            for (int j = 0; j < s.length() - i; j++) {
-                if (isPalindrome(s, i, i + j + 1)) {
-                    answer = Math.max(j + 1, answer);
-                }
+        char[] arr = s.toCharArray();
+
+        int result = 1;
+        for (int left = 0; left < arr.length; left++) {
+            for (int right = left + 1; right < arr.length; right++) {
+                if(isOk(arr, left, right))
+                    result = Math.max(result, right - left + 1);
             }
         }
-
-        return answer;
+        return result;
     }
 
-    static boolean isPalindrome(String str, int start, int end) {
-        int length = end - start;
-        for (int i = 0; i < length / 2; i++) {
-            if (str.charAt(start+i) != str.charAt(end - i - 1)) {
+    private static boolean isOk(char[] arr, int left, int right) {
+        while (left <= right) {
+            if(arr[left] != arr[right])
                 return false;
-            }
+            left++;
+            right--;
         }
         return true;
     }
